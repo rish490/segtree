@@ -1,0 +1,60 @@
+class segtree{
+    public:
+    vector<ll>tree;
+    
+    void init(ll n){
+        tree.clear();
+        tree.assign(4*n,0);
+    }
+    void build(ll start,ll end,ll arr[],ll node){
+        
+        if(start==end){
+            tree[node]=arr[start];
+            return;
+        }
+        ll m=(start+end)>>1;
+        build(start,m,arr,2*node+1);
+        build(m+1,end,arr,2*node+2);
+        
+        tree[node]=tree[2*node+1]+tree[2*node+2];
+        return;
+    }
+    ll getsum(ll start,ll end,ll i,ll j,ll node){
+        if(end<i||start>j){
+            return 0;
+        }
+        if(start>=i&&end<=j){
+            return tree[node];
+        }
+        ll m=(start+end)>>1;
+        return getsum(start,m,i,j,2*node+1)+getsum(m+1,end,i,j,2*node+2);
+    }
+   void update(ll start,ll end,ll node,ll inx,ll val){
+    if(inx<start||inx>end){
+        return;
+    }
+    if(start==end){
+        tree[node]=val;
+        return;
+    }
+    ll m=(start+end)>>1;
+    update(start,m,2*node+1,inx,val);
+    update(m+1,end,2*node+2,inx,val);
+    tree[node]=tree[2*node+1]+tree[2*node+2];
+    return;
+   }
+   void rangeupd(ll start,ll end,ll node,ll l,ll r,ll val){  //addition of val to a range 
+   if(r<start||l>end){
+    return;
+   }
+   if(start==end){
+    tree[node]=tree[node]+val;
+    return;
+   }
+   ll m=(start+end)>>1;
+   rangeupd(start,m,2*node+1,l,r,val);
+   rangeupd(m+1,end,2*node+2,l,r,val);
+   tree[node]=tree[2*node+1]+tree[2*node+2];
+   return;
+   }
+};
