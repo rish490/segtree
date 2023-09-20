@@ -66,6 +66,8 @@ class Lsegtree{
         }
         
         ll m=(l+r)>>1;
-        return getsum(2*node+1,l,m,low,high)+getsum(2*node+2,m+1,r,low,high);
+        int ans=getsum(2*node+1,l,m,low,high)+getsum(2*node+2,m+1,r,low,high);
+        tree[node]=tree[2*node+1]+tree[2*node+2];
+        return ans;
     }
 };
