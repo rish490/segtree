@@ -1,73 +1,59 @@
 class Lsegtree{
-    vector<ll>tree;
-    vector<ll>lazy;
-    public:
-    Lsegtree(vector<ll>&arr,ll n){
-        tree.assign(4*n,0);
-        lazy.assign(4*n,0);
-        build(arr,0,n-1,0);
+public:
+    vector<ll>st,lazy,a;
+    int n;
+    Lsegtree(vector<ll>&b){
+        a=b;
+        n=a.size();
+        st.resize(4*n);
+        lazy.resize(4*n);
+        fill(lazy.begin(),lazy.end(),0);
+        build(0,n-1,0);
     }
-    void build(vector<ll>&arr,ll l,ll r,ll node){
-        if(l==r){
-            tree[node]=arr[l];
+    void build(int ss,int se,int si){
+        if(ss==se){
+            st[si]=a[ss];
             return;
         }
-        if(l>r){
-            return;
-        }
-        ll m=(l+r)>>1;
-        build(arr,l,m,2*node+1);
-        build(arr,m+1,r,2*node+2);
-        tree[node]=tree[2*node+1]+tree[2*node+2];
-    }
-    void rangeupdate(ll node,ll l,ll r,ll low,ll high,ll val){
-       // cout<<l<<" "<<r<<endl;
-        if(l>r||l>high||r<low){
-            return;
-        }
-        if(lazy[node]!=0){
-            tree[node]+=(r-l+1)*lazy[node];
-            if(l!=r){
-                lazy[2*node+1]+=lazy[node];
-                lazy[2*node+2]+=lazy[node];
-            }
-            lazy[node]=0;
-        }
-        if(l>=low&&r<=high){  //complete overlap 
-        tree[node]+=(r-l+1)*val;
-        if(l!=r){
-            lazy[2*node+1]+=val;
-            lazy[2*node+2]+=val;
-        }
-        return;
-        }
-        
-
-        ll m=(l+r)>>1;
-        rangeupdate(2*node+1,l,m,low,high,val);
-        rangeupdate(2*node+2,m+1,r,low,high,val);
-        tree[node]=tree[2*node+1]+tree[2*node+2];
+        int mid=(ss+se)/2;
+        build(ss,mid,2*si+1);
+        build(mid+1,se,2*si+2);
+        st[si]=st[2*si+1]+st[2*si+2];
         return;
     }
-    ll getsum(ll node,ll l,ll r,ll low,ll high){
-        if(l>r||l>high||r<low){
-            return 0;
-        }
-        if(lazy[node]!=0){
-            tree[node]+=(r-l+1)*lazy[node];
-            if(l!=r){
-                lazy[2*node+1]+=lazy[node];
-                lazy[2*node+2]+=lazy[node];
+    void check(int si,int ss,int se){
+        if(lazy[si]!=0){
+            if(lazy[si]%2==1){
+                st[si]=(se-ss+1)-st[si];
             }
-            lazy[node]=0;
+            
+            if(ss!=se){
+                lazy[2*si+1]+=lazy[si];
+                lazy[2*si+2]+=lazy[si];
+            }
+            lazy[si]=0;
         }
-        if(low<=l&&r<=high){
-            return tree[node];
+    }
+    ll getsum(int ss,int se,int qs,int qe,int si){
+        check(si,ss,se);
+        //no overlap
+        if(ss>qe || qs>se||ss>se) return 0;
+        //totally inside
+        if(ss>=qs && se<=qe) return st[si];
+        int mid=(ss+se)/2;
+        return getsum(ss,mid,qs,qe,2*si+1)+getsum(mid+1,se,qs,qe,2*si+2);
+    }
+    void update(int ss,int se,int qs,int qe,int si,int val){
+        check(si,ss,se);
+        if(ss>qe || qs>se||ss>se) return;
+        if(ss>=qs && se<=qe){
+            lazy[si]+=val;
+            check(si,ss,se);
+            return;
         }
-        
-        ll m=(l+r)>>1;
-        int ans=getsum(2*node+1,l,m,low,high)+getsum(2*node+2,m+1,r,low,high);
-        tree[node]=tree[2*node+1]+tree[2*node+2];
-        return ans;
+        int mid=(ss+se)/2;
+        update(ss,mid,qs,qe,2*si+1,val);
+        update(mid+1,se,qs,qe,2*si+2,val);
+        st[si]=st[2*si+1]+st[2*si+2];
     }
 };
