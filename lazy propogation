@@ -21,10 +21,10 @@ void build(ll node, ll st, ll en, vector<ll>&arr){
 void lazyPropogation(ll node, ll st, ll en){
     if(!lazy[node]) return;
     if(st != en){
-        lazy[2*node+1] += lazy[node];
-        lazy[2*node+2] += lazy[node];
+        lazy[2*node+1] += lazy[node];  //yecondition 
+        lazy[2*node+2] += lazy[node];  //ye condition  
     }
-    else tree[node] = (tree[node] + lazy[node])%26;
+    else tree[node] = (tree[node] + lazy[node]);  //ye condition 
     lazy[node] = 0;
 }
  
@@ -50,7 +50,7 @@ void update(ll node, ll st, ll en, ll l, ll r, ll val){
         return;
     
     if(l <= st && r >= en){
-        lazy[node] += val;
+        lazy[node] += val; //ye condition 
         return;
     }
  
