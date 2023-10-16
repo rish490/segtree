@@ -24,7 +24,7 @@ void lazyPropogation(ll node, ll st, ll en){
         lazy[2*node+1] += lazy[node];
         lazy[2*node+2] += lazy[node];
     }
-    else tree[node] = (tree[node] + lazy[node]);
+    else tree[node] = (tree[node] + lazy[node])%26;
     lazy[node] = 0;
 }
  
