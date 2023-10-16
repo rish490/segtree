@@ -1,59 +1,61 @@
-class Lsegtree{
-public:
-    vector<ll>st,lazy,a;
-    int n;
-    Lsegtree(vector<ll>&b){
-        a=b;
-        n=a.size();
-        st.resize(4*n);
-        lazy.resize(4*n);
-        fill(lazy.begin(),lazy.end(),0);
-        build(0,n-1,0);
+class segtree{ 
+    vector<ll>tree;
+    vector<ll>lazy;
+    public:
+    segtree(ll N){
+        tree.assign(4*N,0);
+        lazy.assign(4*N,0);
     }
-    void build(int ss,int se,int si){
-        if(ss==se){
-            st[si]=a[ss];
-            return;
-        }
-        int mid=(ss+se)/2;
-        build(ss,mid,2*si+1);
-        build(mid+1,se,2*si+2);
-        st[si]=st[2*si+1]+st[2*si+2];
+void build(ll node, ll st, ll en, vector<ll>&arr){ 
+    lazy[node] = 0;
+    if(st == en){
+        tree[node] = arr[st];
         return;
     }
-    void check(int si,int ss,int se){
-        if(lazy[si]!=0){
-            if(lazy[si]%2==1){
-                st[si]=(se-ss+1)-st[si];
-            }
-            
-            if(ss!=se){
-                lazy[2*si+1]+=lazy[si];
-                lazy[2*si+2]+=lazy[si];
-            }
-            lazy[si]=0;
-        }
+ 
+    ll mid = (st+en)/2;
+    build(2*node+1, st, mid, arr);
+    build(2*node + 2, mid+1, en, arr);
+}
+ 
+void lazyPropogation(ll node, ll st, ll en){
+    if(!lazy[node]) return;
+    if(st != en){
+        lazy[2*node+1] += lazy[node];
+        lazy[2*node+2] += lazy[node];
     }
-    ll getsum(int ss,int se,int qs,int qe,int si){
-        check(si,ss,se);
-        //no overlap
-        if(ss>qe || qs>se||ss>se) return 0;
-        //totally inside
-        if(ss>=qs && se<=qe) return st[si];
-        int mid=(ss+se)/2;
-        return getsum(ss,mid,qs,qe,2*si+1)+getsum(mid+1,se,qs,qe,2*si+2);
+    else tree[node] = (tree[node] + lazy[node]);
+    lazy[node] = 0;
+}
+ 
+ll query(ll node, ll st, ll en, ll l, ll r){ 
+    lazyPropogation(node, st, en);
+    if(st > r || en < l)
+        return 0;
+    
+    if(l <= st && r >= en) 
+        return tree[node];
+    
+    ll mid = (st + en)/2;
+ 
+    ll q1 = query(2*node+1, st, mid, l, r);
+    ll q2 = query(2*node + 2, mid+1, en, l, r);
+ 
+    return q1 + q2;
+}
+ 
+void update(ll node, ll st, ll en, ll l, ll r, ll val){
+    lazyPropogation(node, st, en);
+    if(st > r || en < l)
+        return;
+    
+    if(l <= st && r >= en){
+        lazy[node] += val;
+        return;
     }
-    void update(int ss,int se,int qs,int qe,int si,int val){
-        check(si,ss,se);
-        if(ss>qe || qs>se||ss>se) return;
-        if(ss>=qs && se<=qe){
-            lazy[si]+=val;
-            check(si,ss,se);
-            return;
-        }
-        int mid=(ss+se)/2;
-        update(ss,mid,qs,qe,2*si+1,val);
-        update(mid+1,se,qs,qe,2*si+2,val);
-        st[si]=st[2*si+1]+st[2*si+2];
-    }
+ 
+    ll mid = (st + en)/2;
+    update(2*node+1, st, mid, l, r, val);
+    update(2*node + 2, mid+1, en, l, r, val);
+}
 };
