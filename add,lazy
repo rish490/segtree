@@ -1,0 +1,99 @@
+segtree(ll N,vector<ll>&temp){
+    arr=temp;
+    tree.assign(4*N,0);
+    sumsq.assign(4*N,0);
+    lazy.assign(4*N,0);
+    build_tree(1,0,N-1);
+}
+/**
+ * Build and init tree
+ */
+void build_tree(ll node, ll a, ll b) {
+  	if(a > b) return;
+  	
+  	if(a == b) { 
+    		tree[node] = arr[a];
+        sumsq[node]=arr[a];
+		return;
+	}
+	
+	build_tree(node*2, a, (a+b)/2);
+	build_tree(node*2+1, 1+(a+b)/2, b); 
+	
+	tree[node] = modadd(tree[2*node],tree[2*node+1]);
+    sumsq[node]=modadd(sumsq[2*node],sumsq[2*node+1]);
+    return;
+}
+
+// /**
+//  * Increment elements within range [i, j] with value value
+//  */
+void update_tree(ll node, ll a, ll b, ll i, ll j, ll value) {
+  
+  	if(lazy[node] != 0) { 
+   		
+        ll add=modadd(modmult(2,modmult(lazy[node],tree[node])),modmult(b-a+1,modmult(lazy[node],lazy[node])));
+        sumsq[node]=modadd(sumsq[node],add);
+        
+        tree[node]=modadd(tree[node],modmult(b-a+1,lazy[node]));
+		if(a != b) {
+			lazy[node*2]=modadd(lazy[2*node],lazy[node]); 
+    			lazy[node*2+1]= modadd(lazy[2*node+1],lazy[node]); 
+		}
+
+   		lazy[node] = 0; // Reset it
+  	}
+  
+	if(a > b || a > j || b < i) 
+		return;
+    
+  	if(a >= i && b <= j) { 
+        ll add=modadd(modmult(2,modmult(value,tree[node])),modmult(b-a+1,modmult(value,value)));
+        sumsq[node]=modadd(sumsq[node],add);
+    		tree[node] =modadd(tree[node],modmult(b-a+1,value));
+            
+		if(a != b) { 
+			lazy[node*2]=modadd(lazy[2*node],value);
+			lazy[node*2+1] =modadd(lazy[2*node+1],value);
+		}
+
+    		return;
+	}
+
+	update_tree(node*2, a, (a+b)/2, i, j, value); 
+	update_tree(1+node*2, 1+(a+b)/2, b, i, j, value); 
+
+	tree[node] = modadd(tree[node*2], tree[node*2+1]); 
+    sumsq[node]=modadd(sumsq[2*node],sumsq[2*node+1]);
+}
+
+// /**
+//  * Query tree to get max element value within range [i, j]
+//  */
+ll query_tree(ll node, ll a, ll b, ll i, ll j) {
+	
+	if(a > b || a > j || b < i) return 0; 
+
+	if(lazy[node] != 0) { 
+		
+        ll add=modadd(modmult(2,modmult(lazy[node],tree[node])),modmult(b-a+1,modmult(lazy[node],lazy[node])));
+        sumsq[node]=modadd(sumsq[node],add);
+        tree[node]=modadd(tree[node],modmult(b-a+1,lazy[node]));
+		if(a != b) {
+			lazy[node*2]=modadd(lazy[2*node],lazy[node]); 
+			lazy[node*2+1] =modadd(lazy[2*node+1],lazy[node]);
+		}
+
+		lazy[node] = 0; // Reset it
+	}
+
+	if(a >= i && b <= j) // Current segment is totally within range [i, j]
+		return sumsq[node];
+
+	ll q1 = query_tree(node*2, a, (a+b)/2, i, j);
+	ll q2 = query_tree(1+node*2, 1+(a+b)/2, b, i, j);
+    
+	ll res=modadd(q1,q2);
+	return res;
+}
+};
