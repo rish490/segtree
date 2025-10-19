@@ -1,0 +1,120 @@
+#pragma once
+#include <bits/stdc++.h>
+using namespace std;
+
+using ll = long long;
+
+/*
+    Segment Tree Template (with Lazy Propagation)
+    ---------------------------------------------
+    Supports:
+      • rangeAdd(l, r, val) → add `val` to all elements in [l, r]
+      • rangeSum(l, r) → get sum of elements in [l, r]
+
+    Usage:
+      SegTree seg(n);             // build empty segtree of size n
+      seg.build(arr);             // build from vector<ll> arr
+      seg.rangeAdd(1, 3, 5);      // add +5 to indices [1..3]
+      cout << seg.rangeSum(2, 4); // query sum of indices [2..4]
+*/
+
+class SegTree {
+public:
+    ll n;
+    vector<ll> tree, lazy;
+
+    SegTree(ll n_) {
+        n = n_;
+        tree.assign(4 * n, 0);
+        lazy.assign(4 * n, 0);
+    }
+
+    // Build from 0-based vector
+    void build(const vector<ll>& arr) {
+        build(0, n - 1, 1, arr);
+    }
+
+    // Range addition: add val to [l, r]
+    void rangeAdd(ll l, ll r, ll val) {
+        rangeAdd(0, n - 1, 1, l, r, val);
+    }
+
+    // Range query: sum of [l, r]
+    ll rangeSum(ll l, ll r) {
+        return rangeSum(0, n - 1, 1, l, r);
+    }
+
+private:
+    // Build recursively
+    void build(ll start, ll end, ll node, const vector<ll>& arr) {
+        if (start == end) {
+            tree[node] = arr[start];
+            return;
+        }
+        ll mid = (start + end) / 2;
+        build(start, mid, 2 * node, arr);
+        build(mid + 1, end, 2 * node + 1, arr);
+        tree[node] = tree[2 * node] + tree[2 * node + 1];
+    }
+
+    // Push down lazy updates to children
+    void pushDown(ll start, ll end, ll node) {
+        if (lazy[node] != 0) {
+            tree[node] += (end - start + 1) * lazy[node];
+            if (start != end) {
+                lazy[2 * node] += lazy[node];
+                lazy[2 * node + 1] += lazy[node];
+            }
+            lazy[node] = 0;
+        }
+    }
+
+    // Range add helper
+    void rangeAdd(ll start, ll end, ll node, ll l, ll r, ll val) {
+        pushDown(start, end, node);
+        if (r < start || end < l) return;
+
+        if (l <= start && end <= r) {
+            lazy[node] += val;
+            pushDown(start, end, node);
+            return;
+        }
+
+        ll mid = (start + end) / 2;
+        rangeAdd(start, mid, 2 * node, l, r, val);
+        rangeAdd(mid + 1, end, 2 * node + 1, l, r, val);
+        tree[node] = tree[2 * node] + tree[2 * node + 1];
+    }
+
+    // Range sum helper
+    ll rangeSum(ll start, ll end, ll node, ll l, ll r) {
+        if (r < start || end < l) return 0;
+        pushDown(start, end, node);
+        if (l <= start && end <= r) return tree[node];
+        ll mid = (start + end) / 2;
+        return rangeSum(start, mid, 2 * node, l, r) +
+               rangeSum(mid + 1, end, 2 * node + 1, l, r);
+    }
+};
+
+
+
+
+//EXAMPLE USAGE 
+class Solution {
+public:
+    long long solve(vector<int>& nums, vector<vector<int>>& queries) {
+        int n = nums.size();
+
+        // convert to long long
+        vector<long long> arr(nums.begin(), nums.end());
+
+        SegTree seg(n);
+        seg.build(arr);
+
+        // Example usage:
+        seg.rangeAdd(1, 3, 5);  // add +5 to indices [1, 3]
+        long long ans = seg.rangeSum(0, 4); // sum of all elements
+        return ans;
+    }
+};
